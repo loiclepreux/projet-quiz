@@ -13,11 +13,12 @@ if (file_exists($envFile)) {
     }
 }
 
-$host     = $_ENV['DB_HOST'] ?? 'mysql-loic.alwaysdata.net';
+$host     = $_ENV['DB_HOST'] ?? 'localhost';
 $port     = $_ENV['DB_PORT'] ?? '3306';
-$dbname1  = $_ENV['DB_NAME'] ?? 'Quiz';
-$username = $_ENV['DB_USER'] ?? 'loic';
-$password = $_ENV['DB_PASS'] ?? 'Loic1983.';
+$dbname1  = $_ENV['DB_NAME'] ?? '';
+$username = $_ENV['DB_USER'] ?? '';
+// Aucun mot de passe écrit ici : il est uniquement dans le fichier .env (jamais sur GitHub)
+$password = $_ENV['DB_PASS'] ?? '';
 
 $dsn = "mysql:host={$host};port={$port};dbname={$dbname1};charset=utf8";
 

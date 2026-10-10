@@ -1,0 +1,6 @@
+# Pas de liste des fichiers quand on ouvre un dossier
+Options -Indexes
+
+# Fichiers cachés (.env, .git...) : introuvables
+# (sauf .well-known, utilisé par Hostinger pour le certificat HTTPS)
+RedirectMatch 404 /\.(?!well-known)

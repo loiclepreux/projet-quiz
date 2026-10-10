@@ -2,129 +2,187 @@ document.addEventListener("DOMContentLoaded", () => {
     const container = document.querySelector(".quiz-container");
     const jeu = container.dataset.jeu;
     const niveau = container.dataset.niveau;
-    const title = document.getElementById("quiz-title");
+    const connecte = container.dataset.connecte === "1";
     const block = document.getElementById("question-block");
     const scoreDisplay = document.getElementById("score-display");
+    const timerEl = document.getElementById("timer");
+    const progression = document.getElementById("progression");
 
+    const DUREE = 10; // secondes par question
+    let questions = [];
+    let index = 0;
     let score = 0;
-    let total = 0;
     let timerInterval;
-    let timeLeft = 10;
-    const maxQuestions = 10;
+    let timeLeft = DUREE;
 
-    function loadQuestion() {
-        clearInterval(timerInterval);
-        fetch(`question.php?jeu=${jeu}&niveau=${niveau}`)
-            .then(res => res.json())
-            .then(data => {
-                if (!data.success) {
-                    block.innerHTML = "<p>Aucune question trouvée.</p>";
-                    return;
-                }
-
-                title.textContent = `${data.question.jeu} - Niveau ${niveau}`;
-
-                const html = `
-                    <p class="question">${data.question.question}</p>
-                    ${data.reponses.map(rep => `
-                        <button class="btn-reponse" data-id="${rep.id}">${rep.reponse}</button>
-                    `).join("")}
-                `;
-                block.innerHTML = html;
-                startTimer();
-
-                document.querySelectorAll(".btn-reponse").forEach(btn => {
-                    btn.addEventListener("click", () => {
-                        document.querySelectorAll(".btn-reponse").forEach(b => b.disabled = true);
-                        checkAnswer(btn.dataset.id);
-                    });
-                });
-            })
-            .catch(error => {
-                console.error("Erreur lors du chargement de la question :", error);
-            });
+    // Crée un élément avec du texte (textContent : le texte n'est jamais lu comme du HTML)
+    function el(tag, className, text) {
+        const node = document.createElement(tag);
+        if (className) node.className = className;
+        if (text !== undefined) node.textContent = text;
+        return node;
     }
 
-    function startTimer() {
-        timeLeft = 10;
-        const timer = document.getElementById("timer");
-        timer.textContent = `⏳ Temps : ${timeLeft}s`;
+    async function post(url, data) {
+        const res = await fetch(url, {
+            method: "POST",
+            headers: { "Content-Type": "application/x-www-form-urlencoded" },
+            body: new URLSearchParams(data),
+        });
+        return res.json();
+    }
+
+    // ===== Démarrage : on charge les 10 questions d'un coup =====
+    async function demarrer() {
+        try {
+            const res = await fetch(`question.php?jeu=${encodeURIComponent(jeu)}&niveau=${encodeURIComponent(niveau)}`);
+            const data = await res.json();
+            if (!data.success) throw new Error(data.message);
+            questions = data.questions;
+            afficherQuestion();
+        } catch (err) {
+            block.innerHTML = "";
+            block.appendChild(el("p", "", "Aucune question trouvée pour ce quiz."));
+        }
+    }
+
+    // ===== Une question =====
+    function afficherQuestion() {
+        const q = questions[index];
+        progression.textContent = `Question ${index + 1} / ${questions.length}`;
+        scoreDisplay.textContent = `Score : ${score}`;
+
+        block.innerHTML = "";
+        block.appendChild(el("p", "question", q.question));
+
+        q.reponses.forEach((rep) => {
+            const btn = el("button", "btn-reponse", rep.reponse);
+            btn.dataset.id = rep.id;
+            btn.addEventListener("click", () => repondre(rep.id, btn));
+            block.appendChild(btn);
+        });
+
+        demarrerTimer();
+    }
+
+    function demarrerTimer() {
+        clearInterval(timerInterval);
+        timeLeft = DUREE;
+        timerEl.textContent = `⏳ ${timeLeft}s`;
 
         timerInterval = setInterval(() => {
             timeLeft--;
-            timer.textContent = `⏳ Temps : ${timeLeft}s`;
-
+            timerEl.textContent = `⏳ ${timeLeft}s`;
             if (timeLeft <= 0) {
-                clearInterval(timerInterval);
-                block.innerHTML += `<p class="feedback" style="color: orange;">⏰ Temps écoulé !</p>`;
-                document.querySelectorAll(".btn-reponse").forEach(btn => btn.disabled = true);
-                total++;
-                scoreDisplay.textContent = `Score : ${score} / ${total}`;
-                setTimeout(() => {
-                    if (total >= maxQuestions) {
-                        endQuiz();
-                    } else {
-                        loadQuestion();
-                    }
-                }, 1500);
+                repondre("", null); // temps écoulé : réponse vide
             }
         }, 1000);
     }
 
-    function checkAnswer(reponse_id) {
-        fetch("reponse.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `reponse=${reponse_id}`
-        })
-        .then(res => res.text())
-        .then(isCorrect => {
-            clearInterval(timerInterval);
-            total++;
-            const isGood = isCorrect.trim() === "1";
-            if (isGood) score++;
+    // ===== Réponse : c'est le serveur qui dit si c'est juste =====
+    async function repondre(reponseId, bouton) {
+        clearInterval(timerInterval);
+        block.querySelectorAll(".btn-reponse").forEach((b) => (b.disabled = true));
 
-            const feedback = document.createElement("p");
-            feedback.className = "feedback";
-            feedback.textContent = isGood ? "✅ Bonne réponse !" : "❌ Mauvaise réponse...";
-            feedback.style.color = isGood ? "limegreen" : "red";
-            block.appendChild(feedback);
+        let message = "";
+        let couleur = "";
+        try {
+            const data = await post("reponse.php", { question: questions[index].id, reponse: reponseId });
+            if (!data.success) throw new Error(data.message);
 
-            scoreDisplay.textContent = `Score : ${score} / ${total}`;
+            score = data.score;
+            const bonneBtn = block.querySelector(`[data-id="${data.bonne}"]`);
+            if (bonneBtn) bonneBtn.classList.add("good");
+            if (bouton && !data.juste) bouton.classList.add("bad");
 
-            setTimeout(() => {
-                if (total >= maxQuestions) {
-                    endQuiz();
-                } else {
-                    loadQuestion();
-                }
-            }, 1500);
-        });
-    }
-
-    function endQuiz() {
-        block.innerHTML = `<p class="final-score">Quiz terminé !<br>Score : ${score} / ${total}</p>`;
-        scoreDisplay.innerHTML = "";
-        document.getElementById("timer").textContent = "";
-
-        const sessionPseudo = container.dataset.pseudo;
-        const pseudo = sessionPseudo || prompt(`Quiz terminé ! Score : ${score}/${total}\n\nEntre ton pseudo pour sauvegarder ton score :`);
-        if (!pseudo || pseudo.trim() === "") return;
-
-        fetch("save_score.php", {
-            method: "POST",
-            headers: { "Content-Type": "application/x-www-form-urlencoded" },
-            body: `jeu=${encodeURIComponent(jeu)}&niveau=${encodeURIComponent(niveau)}&score=${score}&pseudo=${encodeURIComponent(pseudo.trim())}`
-        })
-        .then(res => res.json())
-        .then(data => {
-            if (data.success) {
-                block.innerHTML += `<p class="feedback" style="color: limegreen;">✅ Score sauvegardé pour <strong>${pseudo.trim()}</strong> !</p>
-                    <p><a href="score.php" style="color: cyan;">Voir le classement →</a></p>`;
+            if (data.juste) {
+                message = "✅ Bonne réponse !";
+                couleur = "limegreen";
+            } else if (bouton) {
+                message = "❌ Mauvaise réponse...";
+                couleur = "red";
+            } else {
+                message = "⏰ Temps écoulé !";
+                couleur = "orange";
             }
-        })
-        .catch(() => {});
+        } catch (err) {
+            message = "Erreur de connexion, question suivante.";
+            couleur = "orange";
+        }
+
+        const feedback = el("p", "feedback", message);
+        feedback.style.color = couleur;
+        block.appendChild(feedback);
+        scoreDisplay.textContent = `Score : ${score}`;
+
+        setTimeout(() => {
+            index++;
+            if (index < questions.length) {
+                afficherQuestion();
+            } else {
+                terminer();
+            }
+        }, 1500);
     }
 
-    loadQuestion();
+    // ===== Fin de partie =====
+    function terminer() {
+        timerEl.textContent = "";
+        progression.textContent = "";
+        scoreDisplay.textContent = "";
+        block.innerHTML = "";
+
+        const resultat = el("p", "final-score", "Quiz terminé !");
+        resultat.appendChild(document.createElement("br"));
+        resultat.appendChild(document.createTextNode(`Score : ${score} / ${questions.length}`));
+        block.appendChild(resultat);
+
+        const zone = el("div", "save-zone");
+        block.appendChild(zone);
+
+        if (connecte) {
+            sauvegarder({}, zone);
+        } else {
+            // Pas connecté : petit formulaire pour choisir un pseudo
+            const form = el("form", "save-form");
+            const input = el("input");
+            input.placeholder = "Ton pseudo";
+            input.maxLength = 30;
+            input.required = true;
+            const btn = el("button", "btn-nav", "Enregistrer mon score");
+            btn.type = "submit";
+            form.append(input, btn);
+            form.addEventListener("submit", (e) => {
+                e.preventDefault();
+                sauvegarder({ pseudo: input.value }, zone);
+            });
+            zone.appendChild(el("p", "", "Entre un pseudo pour apparaître au classement :"));
+            zone.appendChild(form);
+        }
+
+        const liens = el("p", "end-links");
+        const rejouer = el("a", "btn-nav", "Rejouer");
+        rejouer.href = "play.php";
+        const classement = el("a", "btn-nav", "Voir le classement");
+        classement.href = "score.php";
+        liens.append(rejouer, classement);
+        block.appendChild(liens);
+    }
+
+    async function sauvegarder(data, zone) {
+        const retour = await post("save_score.php", data).catch(() => ({ success: false, message: "Erreur de connexion." }));
+        const msg = el("p", "feedback");
+        if (retour.success) {
+            zone.innerHTML = "";
+            msg.textContent = `✅ Score enregistré pour ${retour.pseudo} !`;
+            msg.style.color = "limegreen";
+        } else {
+            msg.textContent = retour.message;
+            msg.style.color = "orange";
+            zone.querySelector(".feedback")?.remove();
+        }
+        zone.appendChild(msg);
+    }
+
+    demarrer();
 });

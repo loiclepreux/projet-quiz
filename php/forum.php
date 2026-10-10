@@ -42,7 +42,8 @@ $sujets = $pdo->query("
         <?php if (count($sujets) === 0): ?>
             <p>Aucun sujet pour le moment.</p>
         <?php else: ?>
-            <table class="forum-table">
+            <div class="table-scroll">
+        <table class="forum-table">
                 <thead>
                     <tr>
                         <th>Titre</th>
@@ -62,6 +63,7 @@ $sujets = $pdo->query("
                     <?php endforeach; ?>
                 </tbody>
             </table>
+        </div>
         <?php endif; ?>
     </section>
 </main>

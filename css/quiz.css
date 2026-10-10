@@ -632,3 +632,271 @@ main {
     text-shadow: 0 0 6px #00ffff;
     cursor: default;
 }
+/* =========================================================
+   RESPONSIVE + CORRECTIFS
+   ========================================================= */
+
+/* La page défile normalement (avant, html et body étaient bloqués à 100%
+   de hauteur : sur téléphone le contenu était coupé ou défilait mal) */
+html,
+body {
+    height: auto;
+    min-height: 100%;
+}
+html {
+    overflow-x: visible;
+}
+
+/* Le halo lumineux reste fixé à l'écran au lieu de s'arrêter en haut de page */
+body::after {
+    position: fixed;
+    inset: 0;
+    width: auto;
+    height: auto;
+}
+
+/* Les boutons de réponse : même largeur, centrés */
+.btn-reponse {
+    width: 100%;
+    max-width: 500px;
+}
+
+/* Bonne / mauvaise réponse */
+.btn-reponse.good {
+    background-color: #0a8f3c;
+    border-color: limegreen;
+    color: #fff;
+}
+.btn-reponse.bad {
+    background-color: #8f0a0a;
+    border-color: red;
+    color: #fff;
+}
+.btn-reponse:disabled {
+    cursor: default;
+}
+
+/* Les tableaux (scores, forum) défilent dans leur cadre au lieu de déborder */
+.table-scroll {
+    width: 100%;
+    overflow-x: auto;
+}
+.score-table {
+    display: table;
+    min-height: 0;
+    border-collapse: collapse;
+}
+
+/* Tablette */
+@media (max-width: 900px) {
+    .banner {
+        gap: 20px;
+        padding: 10px 16px;
+    }
+    .logo {
+        height: 140px;
+    }
+    .title-group h1 {
+        font-size: 2.4rem;
+    }
+    .menu {
+        flex-wrap: wrap;
+        gap: 12px;
+        padding: 0 12px;
+    }
+    .presentation,
+    .quiz-container,
+    .forum-container,
+    .selection-quiz {
+        margin: 30px 16px;
+    }
+}
+
+/* Téléphone */
+@media (max-width: 600px) {
+    /* Le fond animé en boucle demande beaucoup au téléphone */
+    html,
+    body {
+        animation: none;
+    }
+
+    .banner {
+        flex-direction: column;
+        gap: 4px;
+        padding: 12px 16px;
+    }
+    .logo {
+        height: 90px;
+    }
+    .title-group h1 {
+        font-size: 1.5rem;
+    }
+    .slogan {
+        font-size: 0.85rem;
+    }
+
+    .btn-nav {
+        padding: 8px 14px;
+        font-size: 0.9rem;
+    }
+
+    .presentation {
+        padding: 22px 18px;
+    }
+    .presentation h2 {
+        font-size: 1.5rem;
+    }
+    .presentation p {
+        font-size: 0.95rem;
+        line-height: 1.6;
+    }
+
+    .selection-quiz {
+        padding: 0;
+    }
+    .selection-quiz h2 {
+        font-size: 1.4rem;
+        margin-bottom: 24px;
+    }
+    .quiz-grid {
+        grid-template-columns: repeat(2, 1fr);
+        gap: 12px;
+        padding: 0;
+    }
+    .quiz-card {
+        padding: 22px 10px;
+        font-size: 0.85rem;
+    }
+
+    .quiz-container {
+        padding: 18px 14px;
+    }
+    .quiz-container h2 {
+        font-size: 1.2rem;
+    }
+    .question {
+        font-size: 1.05rem;
+        line-height: 1.5;
+    }
+
+    .score-table th,
+    .score-table td {
+        padding: 10px 8px;
+        font-size: 0.8rem;
+    }
+
+    .forum-container {
+        padding: 1.2rem;
+    }
+    .forum-table th,
+    .forum-table td {
+        padding: 0.6rem;
+        font-size: 0.8rem;
+    }
+
+    /* Les 2 formulaires (connexion / inscription) l'un sous l'autre */
+    .auth-container {
+        padding: 24px 18px;
+        max-height: 90vh;
+        overflow-y: auto;
+    }
+    .auth-box {
+        gap: 20px;
+    }
+    .auth-form {
+        min-width: 100%;
+    }
+
+    .difficulty-box {
+        padding: 30px 18px;
+    }
+
+    .footer {
+        margin-top: 40px;
+        padding: 16px;
+    }
+    .footer-link {
+        display: inline-block;
+        margin: 6px 4px;
+    }
+
+    /* iPhone : un champ en dessous de 16px fait zoomer la page */
+    input,
+    textarea,
+    select {
+        font-size: 16px;
+    }
+}
+
+/* Écrans tactiles : l'effet "survol" ne reste pas bloqué après avoir touché */
+@media (hover: none) {
+    .btn-nav:hover,
+    .quiz-card:hover,
+    .btn-difficulty:hover,
+    .auth-form button:hover {
+        transform: none;
+    }
+    .btn-reponse:hover:not(.good):not(.bad) {
+        background-color: #111;
+        color: white;
+    }
+}
+
+/* ========== Quiz : infos, fin de partie ========== */
+.quiz-infos {
+    display: flex;
+    justify-content: space-between;
+    max-width: 500px;
+    margin: 0 auto 10px;
+    font-size: 1rem;
+    color: #ccc;
+}
+
+.final-score {
+    font-size: 1.6rem;
+    line-height: 1.6;
+    color: #00f0ff;
+    text-shadow: 0 0 8px #00ffff;
+}
+
+.save-form {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 10px;
+    margin: 10px 0;
+}
+
+.save-form input {
+    padding: 10px;
+    background-color: #1b1b2f;
+    border: 1px solid #00ffff60;
+    border-radius: 6px;
+    color: white;
+    min-width: 200px;
+}
+
+.save-form button {
+    border: none;
+    cursor: pointer;
+    font-family: inherit;
+}
+
+.end-links {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: 12px;
+    margin-top: 25px;
+}
+
+/* Le footer reste en bas de l'écran même sur les pages courtes */
+body {
+    display: flex;
+    flex-direction: column;
+    min-height: 100vh;
+}
+body > main,
+body > .wrapper {
+    flex: 1;
+}

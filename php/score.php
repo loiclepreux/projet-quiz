@@ -1,6 +1,7 @@
 <?php
 session_start();
 include 'config.php';
+include 'jeux.php';
 
 try {
     $stmt = $pdo->query("
@@ -26,6 +27,7 @@ try {
         
 <main class="quiz-container">
         <h2>🏆 Classement général</h2>
+        <div class="table-scroll">
         <table class="score-table">
             <thead>
                 <tr>
@@ -40,14 +42,15 @@ try {
                 <?php foreach ($scores as $s): ?>
                     <tr>
                         <td><?= htmlspecialchars($s['pseudo']) ?></td>
-                        <td><?= htmlspecialchars($s['nom_jeu']) ?></td>
-                        <td><?= ucfirst($s['niveau']) ?></td>
-                        <td><?= $s['score'] ?></td>
+                        <td><?= htmlspecialchars($JEUX[$s['nom_jeu']] ?? $s['nom_jeu']) ?></td>
+                        <td><?= htmlspecialchars(ucfirst($s['niveau'])) ?></td>
+                        <td><?= (int) $s['score'] ?>/10</td>
                         <td><?= date("d/m/Y H:i", strtotime($s['date_jeu'])) ?></td>
                     </tr>
                 <?php endforeach; ?>
             </tbody>
         </table>
+        </div>
     </main>
 
 <?php include __DIR__ . '/../php-annexe/footer.php'; ?>
