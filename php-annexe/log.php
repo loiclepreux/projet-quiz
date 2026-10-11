@@ -24,7 +24,7 @@ if (!isset($pathPrefix)) {
                 <form id="register-form">
                     <input type="text" id="register-pseudo" placeholder="Pseudo" required>
                     <input type="email" id="register-email" placeholder="Email" required>
-                    <input type="password" id="register-password" placeholder="Mot de passe" required>
+                    <input type="password" id="register-password" placeholder="Mot de passe (8 caractères min.)" minlength="8" required>
                     <button type="submit">S'inscrire</button>
                 </form>
             </div>

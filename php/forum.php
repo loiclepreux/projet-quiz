@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/securite.php'; // session protégée
 include 'config.php';
 include '../php-annexe/head.php';
 

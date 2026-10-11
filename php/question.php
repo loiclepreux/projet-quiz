@@ -1,7 +1,7 @@
 <?php
 // Démarre une partie : renvoie 10 questions différentes, SANS les bonnes réponses.
 // Les bonnes réponses restent sur le serveur, dans la session.
-session_start();
+require_once __DIR__ . '/securite.php'; // session protégée
 require_once __DIR__ . '/config.php';
 require_once __DIR__ . '/jeux.php';
 

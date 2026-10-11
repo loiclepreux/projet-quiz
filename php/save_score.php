@@ -1,6 +1,6 @@
 <?php
 // Enregistre le score de la partie terminée. Le score vient de la session, jamais du navigateur.
-session_start();
+require_once __DIR__ . '/securite.php'; // session protégée
 require_once __DIR__ . '/config.php';
 
 header('Content-Type: application/json; charset=utf-8');

@@ -1,5 +1,5 @@
 <?php
-session_start();
+require_once __DIR__ . '/securite.php'; // session protégée
 require_once __DIR__ . '/config.php';
 
 $id_sujet = isset($_GET['id']) ? (int) $_GET['id'] : 0;

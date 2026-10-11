@@ -1,6 +1,6 @@
 <?php
 // Vérifie UNE réponse de la partie en cours. C'est le serveur qui compte les points.
-session_start();
+require_once __DIR__ . '/securite.php'; // session protégée
 header('Content-Type: application/json; charset=utf-8');
 
 $partie     = $_SESSION['partie'] ?? null;
